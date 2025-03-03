@@ -36,7 +36,6 @@ Dependencies:
 
 """
 from flask import Flask, request, jsonify
-from jsonschema import validate, ValidationError
 
 
 from .resume_analysis import get_resume_analysis_agent
@@ -99,6 +98,10 @@ def resume_analysis():
     """
     data = []
     try:
+        from .resume_analysis_utils.nodes.subgraph_nodes import check_contribution_count, check_user_exists
+        test_github = check_user_exists("senank")
+        tesT_count = check_contribution_count("senank")
+        app.logger.info(f"This use exists: {test_github} with {tesT_count} contributions")
         # Initialize the workflow
         agent = get_resume_analysis_agent()
         result = agent.invoke(InputState(resumes=data))

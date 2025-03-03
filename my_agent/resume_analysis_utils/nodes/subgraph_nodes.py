@@ -26,12 +26,12 @@ def validate_github(state: AnalysisState):
     return {"is_valid": True}
 
 
-def _check_user_exists(username):
+def check_user_exists(username):
     response = requests.get(f"{GITHUB_API_BASE}/users/{username}")
     return response.status_code == 200
 
 
-def _check_contribution_count(username):  # TODO: Check this works and set PATToken in env
+def check_contribution_count(username):  # TODO: Check this works and set PATToken in env
     url = GITHUB_API_BASE + "/graphql"
     headers = {
         "Authorization": f"Bearer {os.getenv("PATToken")}",
