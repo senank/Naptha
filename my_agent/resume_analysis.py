@@ -26,13 +26,13 @@ Usage:
 from langgraph.graph import START, END, StateGraph
 from langgraph.constants import Send
 
-from my_agent.resume_analysis_utils.states.main_states import AgentState, InputState,\
+from .resume_analysis_utils.states.main_states import AgentState, InputState,\
     OutputState
-from my_agent.resume_analysis_utils.states.subgraph_states import AnalysisState
+from .resume_analysis_utils.states.subgraph_states import AnalysisState
 
-from my_agent.resume_analysis_utils.nodes.main_nodes import preprocessor, output_node,\
+from .resume_analysis_utils.nodes.main_nodes import preprocessor, output_node,\
     initiate_analysis_nodes
-from my_agent.resume_analysis_utils.nodes.subgraph_nodes import validate_github, route_analysis,\
+from .resume_analysis_utils.nodes.subgraph_nodes import validate_github, route_analysis,\
     assess_candidate, subgraph_output_node
 
 

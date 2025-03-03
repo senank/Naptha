@@ -5,7 +5,7 @@ WORKDIR /my_agent
 COPY requirements_agent.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY my_agent .
+COPY my_agent /my_agent
 
 EXPOSE 8080
 
