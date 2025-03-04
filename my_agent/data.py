@@ -1,8 +1,11 @@
 import requests
 
-from typing import Dict
+from typing import Dict, List
 from logging import getLogger
 from time import time
+
+from io import BytesIO
+from PyPDF2 import PdfReader
 
 logger = getLogger(__name__)
 from .constants import ASHBY_API_KEY, ASHBY_API_URL
@@ -18,6 +21,7 @@ def _valid_time_difference(prev):
         return False
     return True
 
+
 def _get_sync_token():
     if not last_updated:
         return None, None
@@ -25,29 +29,88 @@ def _get_sync_token():
         return None, None
     return sync_token, next_cursor
 
+
 # APPLICANT DATA
-def get_all_job_applications(job_posting_id: str):
+def get_all_job_applications(job_posting_id: str) -> List[Dict]:
     """
     Parses all applications and formats a new list where all are new
     """
+    logger.info(f"getting job applications for {job_posting_id}")
     applications = _fetch_all_job_applications(job_posting_id)
-    # TODO: data: How to determine if already processed an application: "currentInterviewStage"?
-    # new_applications = []
-    # for application in applications:
-    #     if application["stage"]["name"] == "New":
-    #         new_applications.append(application)
-    return applications
+    relevant_applications = _get_relevant_application_data(applications)
+    return relevant_applications
+
+
+def _get_applicant_info(id_):
+    url = ASHBY_API_URL + "/candidate.info"
+    json = {
+        "id": id_,
+    }
+    app_info = {'id': id_}
+    response_data = _send_request_to_ashby(url, json)
+    app_info["name"] = response_data["name"]
+    
+    # get github username
+    for link in response_data["socialLinks"]:
+        if link["type"] == "GitHub":
+            app_info["github"] = link["url"].rstrip("/").split("/")[-1]
+            break
+    if not app_info.get("github", ""):  # only here to prevent unneccessary calls to api
+        return app_info
+    
+    # Get resume link
+    app_info["resume"] = _get_resume_data(response_data["resumeFileHandle"]["handle"])
+
+    return app_info
+
+
+def _get_relevant_application_data(applications: List[Dict]) -> List[Dict]:
+    """
+    Parses applications to get only viable applications
+    """
+    processed_applications = []
+    for application in applications:
+        if application['status'] != "active" or application["currentInterviewStage"]["type"] != "PreInterviewScreen":
+            continue
+        cand_id = application['candidate']['id']
+        applicant = _get_applicant_info(cand_id)
+        if applicant.get("github", ""):
+            processed_applications.append(applicant)
+    return processed_applications
+
+
+def _get_resume_data(handle):
+    response = requests.post(
+        ASHBY_API_URL + "/file.info",
+        json={"fileHandle": handle},
+        headers = {
+            'Accept': 'application/json; version=1',
+            'Content-Type': 'application/json',
+        },
+        auth=(ASHBY_API_KEY, '')
+    )
+    url = response.json()["results"]["url"]
+    response = requests.get(url)
+    response.raise_for_status()
+    pdf_file = BytesIO(response.content)
+    reader = PdfReader(pdf_file)
+
+    text = []
+    for page in reader.pages:
+        text.append(page.extract_text())
+    return "\n".join(text)
 
 
 def _fetch_all_job_applications(job_posting_id: str):
     """
     Gets all job applications to a specific job
     """
-    url = ASHBY_API_URL + "/applications.list"
+    url = ASHBY_API_URL + "/application.list"
     json = {
-        "limit": 50,
+        "limit": 1,
         "jobId": job_posting_id
     }
+    # applications = _sync_job_id_application_ashby(url, json)
     applications = _sync_job_id_application_ashby(url, json)
 
     logger.info(f"Found {len(applications)} from endpoint")
@@ -80,7 +143,7 @@ def _sync_job_id_application_ashby(url: str, payload: Dict):
             if not response:
                 logger.error("Failed respons in _send_request_to_ashby")
             
-            data += response["results"]
+            data += response.json()['results']
             
             sync_token = response.get("syncToken", None)
             next_cursor = response.get("nextCursor", "")
@@ -97,20 +160,45 @@ def _sync_job_id_application_ashby(url: str, payload: Dict):
         logger.error(f"_send_request_to_ashby: {e}")
 
 
+def _send_request_to_ashby(url: str, payload: str):
+    response = requests.post(
+        url,
+        json=payload,
+        headers = {
+            'Accept': 'application/json; version=1',
+            'Content-Type': 'application/json',
+        },
+        auth=(ASHBY_API_KEY, '')
+    )
+    return response.json()["results"]
+
 # JOB DATA
-def get_job_posting_data(job_posting_id: str):
+def get_job_posting_data(job_id: str):
+    # Get Job Posting ID
     url = ASHBY_API_URL + "/job.info"
     json = {
-        "id": job_posting_id
+        "id": job_id
     }
     job_data = _send_fetch_job_description(url, json)
     if not job_data:
         logger.info("No Job data found")
         return {}
+    job_posting_id = job_data["jobPostingIds"][0]
+    
+    # Get job info from posting
+    url = ASHBY_API_URL + "/jobPosting.info"
+    json = {
+        "jobPostingId": job_posting_id
+    }
+    job_posting_data = _send_fetch_job_description(url, json)
+    if not job_posting_data:
+        logger.info("No Job data found")
+        return {}
     
     final_job_data = {}
-    final_job_data["name"] = job_data["job"]["name"]
-    final_job_data["info"] = job_data["openings"]["latestVersion"]["description"]
+    final_job_data["job_id"] = job_id
+    final_job_data["name"] = job_posting_data["title"]
+    final_job_data["info"] = job_posting_data["descriptionPlain"]
 
     return final_job_data
 
@@ -127,7 +215,7 @@ def _send_fetch_job_description(url: str, payload: Dict):
             'Content-Type': 'application/json',
         },
         auth=(ASHBY_API_KEY, '')
-    )
+    ).json()["results"]
 
 
 
