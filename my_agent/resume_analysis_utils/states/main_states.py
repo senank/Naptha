@@ -58,7 +58,9 @@ class InputState(TypedDict): # First node
         client_info (str): Additional information about the client.
         articles (List[str]): A list of articles to be processed in the workflow.
     """
-    resumes: List[Dict]
+    job_name: str
+    job_info: str
+    application_data: List[Dict]
 
 ### Overall state ###
 class AgentState(TypedDict): # Overall State of graph

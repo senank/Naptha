@@ -10,3 +10,4 @@ services:
       - FLASK_RUN_PORT=8080
       - FLASK_APP=app.py
       - LANGCHAIN_PROJECT="Naptha_resume_agent"
+      - ASHBY_API_KEY=${ASHBY_API_KEY}
