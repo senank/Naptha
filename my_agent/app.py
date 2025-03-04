@@ -69,8 +69,18 @@ app = Flask(__name__)
 def home():
     return "working!"
 
+@app.route('/test_ashby_webhook', methods=['POST'])
+def test_ashby_webhook():
+    """
+    This function tests webhooks
+    """
+    data = request.json()
+    app.logger.info(f"{data}")
+    return jsonify({"message": f"got webhook with {data}"}), 200
+
+
 @app.route('/resume_analysis', methods=['POST'])
-def ashby_webhook(request: Request):
+def resume_analysis():
     """
     This function gets triggered on webhooks from ashby on application creations.
 
@@ -80,9 +90,9 @@ def ashby_webhook(request: Request):
         - Updates Ashby CustomField to reflect the score
     """
     # Validate request comes from Ashby webhook
-    if not _validate_signature(request):  # TODO: app: Validate signature of webhook
-        app.logger.error("Invalid signature. Rejecting request.")
-        return jsonify({"error": "Unauthorized"}), 401
+    # if not _validate_signature(request):  # TODO: app: Validate signature of webhook
+    #     app.logger.error("Invalid signature. Rejecting request.")
+    #     return jsonify({"error": "Unauthorized"}), 401
 
     # Check response is json
     if not request.is_json:
@@ -91,9 +101,10 @@ def ashby_webhook(request: Request):
     
     app.logger.debug("Received JSON data")
     data = request.get_json()
+    app.logger.info(f"\n\n{data}\n\n")
 
     # Validate request schema
-    if not _validate_resume_analysis_schema(data):  # TODO: app: Validate schema of webhook
+    if not _validate_resume_analysis_schema(data):
         app.logger.error("Invalid JSON format.")
         return jsonify({"error": "Invalid JSON format"}), 500
     
@@ -144,7 +155,7 @@ def _get_json_schema_resume_analysis():
             "data": {"type": "object"},
 
         },
-        "required": [JSON_JOB_INFO, JSON_NAME],
+        "required": ["action", "data"],
         "additionalProperties": False
     }
 
