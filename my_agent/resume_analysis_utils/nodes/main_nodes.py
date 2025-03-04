@@ -107,14 +107,16 @@ def preprocessor(state: InputState) -> AgentState:
                 "regeneration_count": 0
             }
     """
-    job_name = state.get(JSON_NAME, "")
-    job_info = state.get(JSON_JOB_INFO, "")
-    resumes = state.get("resumes", [])
+    job_id = state["job_data"]["id"]
+    job_name = state["job_data"]["name"]
+    job_info = state["job_data"]["info"]
+    applicants = state["applicants"]
     return AgentState(
-        job_name = job_name,
-        job_info = job_info,
-        resumes = resumes,
-        analysis = [],
+        job_id=job_id,
+        job_name=job_name,
+        job_info=job_info,
+        applicants=applicants,
+        classification=[],
     )
 
 
@@ -154,14 +156,23 @@ def initiate_analysis_nodes(state: AgentState) -> List[Send]:
                 })
             ]
     """
-    resumes = state['resumes']
+    applicants = state["applicants"]
     return [
-        Send("create_analysis_subgraph", AnalysisState( #create_analysis_subgraph(article)
-                # TODO: nodes: Sending each article for analysis
+        Send("create_analysis_subgraph", AnalysisState(
+                job_name=state["job_name"],
+                job_info=state["job_info"],
+                is_valid=True,
+                applicant_id=applicant['id'],
+                github_username=applicant['github'],
+                resume=['resume'],
+                final_score=0.0
             )
-        ) for resume in resumes
+        ) for applicant in applicants
     ]
 
 
 def output_node(state: AgentState) -> OutputState:
-    pass  # TODO: nodes: return only scores above a certain threshold
+    return OutputState(
+        job_id=state["job_id"],
+        classification=state["classification"]
+    )

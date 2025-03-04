@@ -44,16 +44,26 @@ def _check_contribution_count(username):
 
 # STEP 2
 def assess_candidate(state: AnalysisState):
+    """ Step 2 of the workflow
+    
+    Gets a 3 part score that is then averaged to determine final_score
+    """
 
     prompt = job_grader.format(job_name=state['job_name'],
-                                job_info=state['job_info'],)
+                                job_info=state['job_info'],
+                                applicant=state['resume'])
     model = get_model()
     response = model.with_structured_output(GraderOutput).invoke(prompt)
+    scores = response.technical_expertise + response.practical_experience + response.job_alignment
+    final_score = scores/3
     return {
-        "final_score": response.final_score
+        "final_score": final_score
     }
 
 
 # Final state
 def subgraph_output_node(state: AnalysisState) -> AgentState:
-    pass
+    if not state["is_valid"]:
+        return {"classification": [(state["applicant_id"], 0.0)]}
+    return {"classification": [(state["applicant_id"], state['final_score'])]}
+

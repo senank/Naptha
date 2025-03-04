@@ -160,14 +160,13 @@ def ashby_webhook(request: Request):
         # Get all new applicants for this job_id
         job_id = data['data']['job']['id']
         job_data = get_job_posting_data(job_id)
-        applications = get_all_job_applications(job_id)
+        applicants = get_all_job_applications(job_id)
 
         # TODO: app: send application to resume analysis agent
         agent = get_resume_analysis_agent()
         result = agent.invoke(InputState(
-            job_info=job_data["info"],
-            job_name=job_data["name"],
-            resumes=applications
+            job_data=job_data,
+            applicants=applicants
         ))
         # TODO: app: send the result back to ashby
         if result['data']:

@@ -13,9 +13,15 @@ class AnalysisState(TypedDict):  #TODO: substate: Analysis state
         classification (str): The classification of the article.
         regeneration_count (int): The number of times the article has been reclassified.
     """
+    # Job stuff
     job_name: str
     job_info: str
-    resume: Dict
+
+    # Applicant stuff
+    is_valid: bool
+    applicant_id: str
+    github_username: str
+    resume: str
     final_score: float
 
 class GraderOutput(BaseModel):
@@ -28,5 +34,4 @@ class GraderOutput(BaseModel):
     technical_expertise: int
     practical_experience: int
     job_alignment: int
-    final_score: float
 

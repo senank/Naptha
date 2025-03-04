@@ -58,9 +58,8 @@ class InputState(TypedDict):
         client_info (str): Additional information about the client.
         articles (List[str]): A list of articles to be processed in the workflow.
     """
-    job_name: str
-    job_info: str
-    application_data: List[Dict]
+    job_data: Dict
+    applicants: List[Dict]
 
 ### Overall state ###
 class AgentState(TypedDict):  # TODO: states: Define AgentState
@@ -74,9 +73,10 @@ class AgentState(TypedDict):  # TODO: states: Define AgentState
         articles (List[str]): A list of articles being processed in the workflow.
         classification (List[Tuple[str, str]]): The classification of main subject of articles.
     """
+    job_id: str
     job_name: str
     job_info: str
-    resumes: List[Dict]
+    applicants: List[Dict]
     classification: Annotated[List[Tuple[str, bool]], add]
 
 ### Output state ###
@@ -88,6 +88,6 @@ class OutputState(TypedDict):  # TODO: states: Determine OutputState
         client_name (str): The name of the client for whom the summary was generated.
         classification (List[Tuple[str, str]]): The final classification of articles
     """
-    job_name: str
+    job_id: str
     classification: List[Tuple[str, bool]]
 
