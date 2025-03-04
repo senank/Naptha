@@ -31,8 +31,7 @@ def _check_user_exists(username):
     return response.status_code == 200
 
 
-def _check_contribution_count(username):  # TODO: Check this works and set PATToken in env
-    # response = requests.get(f"{GITHUB_API_BASE}/users/{username}/events/public")  # can use this for any public events rather than commits
+def _check_contribution_count(username):
     response = requests.get(f"{GITHUB_API_BASE}/search/commits?q=author:{username}")
 
     if response.status_code == 200:

@@ -78,7 +78,7 @@ def get_resume_analysis_agent():
     # Add edges
     logger.debug("Adding edges to the workflow")
     workflow.add_edge(START, "preprocessor")
-    workflow.add_conditional_edges("preprocessor", initiate_analysis_nodes, ["create_analysis_subgraph"]) # ? Will remove
+    workflow.add_conditional_edges("preprocessor", initiate_analysis_nodes, ["create_analysis_subgraph"])
 
     workflow.add_edge("create_analysis_subgraph", "output_node")
     workflow.add_edge("output_node", END)

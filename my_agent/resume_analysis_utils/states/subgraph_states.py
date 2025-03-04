@@ -3,14 +3,14 @@ from pydantic import BaseModel, Field
 
 ### Intermediate states ###
 # Classification states
-class AnalysisState(TypedDict):
+class AnalysisState(TypedDict):  #TODO: substate: Analysis state
     """
     Represents the intermediate state of the classification process.
 
     Attributes:
         client_name (str): The name of the client to determine if they are the main subject.
         article_id (str): The unique identifier for the article.
-        classification (str): The classification of the article. #? bool?
+        classification (str): The classification of the article.
         regeneration_count (int): The number of times the article has been reclassified.
     """
     job_name: str

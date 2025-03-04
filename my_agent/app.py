@@ -35,16 +35,21 @@ Dependencies:
     - jsonschema: For validating incoming JSON request data against a schema.
 
 """
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Request
+from jsonschema import validate, ValidationError
 
 
 from .resume_analysis import get_resume_analysis_agent
-from .constants import JSON_JOB_NAME, JSON_JOB_INFO
+from .data import get_all_job_applications, get_job_posting_data
+from .constants import JSON_NAME, JSON_JOB_INFO, JOB_IDS, ASHBY_WEBHOOK_SECRET
 
 from .resume_analysis_utils.states.main_states import InputState
 import logging
 
 from typing import Dict
+
+import hmac
+import hashlib
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -64,8 +69,7 @@ app = Flask(__name__)
 def home():
     return "working!"
 
-@app.route('/resume_analysis', methods=['POST'])
-def resume_analysis():
+def resume_analysis(data: Dict):
     """
     Handles the `/resume_analysis` endpoint for processing daily summary requests.
 
@@ -96,23 +100,125 @@ def resume_analysis():
             }
         }
     """
-    data = []
+    
     try:
-        from .resume_analysis_utils.nodes.subgraph_nodes import check_contribution_count, check_user_exists
-        test_github = check_user_exists("senank")
-        tesT_count = check_contribution_count("senank")
-        app.logger.info(f"This use exists: {test_github} with {tesT_count} contributions")
         # Initialize the workflow
+
+        ### THIS IS A TEST BLOCK ###
+        data=test_get_data()
+        app.logger.info(f"\n\n\n{data}\n\n\n")
+        ############################
+        
+        
         agent = get_resume_analysis_agent()
-        result = agent.invoke(InputState(resumes=data))
+        result = agent.invoke(InputState(data))
 
         # Return the result as JSON
-        return jsonify({"status": "success", "result": result}), 200
+        return jsonify({"status": "success", "result": data}), 200
 
     except Exception as e:
         app.logger.error(f"Error while running the agent: {str(e)}")
         return jsonify({"error": f"Failed to process the request: {str(e)}"}), 500
 
+@app.route('/resume_analysis', methods=['POST'])
+def ashby_webhook(request: Request):
+    """
+    This function gets triggered on webhooks from ashby on application creations.
+
+    It does the following:
+        - Pulls all the unsynced resumes that are not reviewed
+        - Passes resumes to the agent
+        - Updates Ashby CustomField to reflect the score
+    """
+    # Validate request comes from Ashby webhook
+    if not _validate_signature(request):
+        app.logger.error("Invalid signature. Rejecting request.")
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # Check response is json
+    if not request.is_json:
+        app.logger.error("Request content is not JSON.")
+        return jsonify({"error": "Request content is not JSON"}), 400
+    
+    app.logger.debug("Received JSON data")
+    data = request.get_json()
+
+    # Validate request schema
+    if not _validate_resume_analysis_schema(data):
+        app.logger.error("Invalid JSON format.")
+        return jsonify({"error": "Invalid JSON format"}), 500
+    
+    # Checks event type is application created
+    if data['action'] != "applicationSubmit":
+        return
+    
+    # Checks the job is for the job wanted
+    if data['data']['job']['id'] in JOB_IDS:
+        return
+    
+    try:
+        # Get all new applicants for this job_id
+        job_id = data['data']['job']['id']
+        job_data = get_job_posting_data(job_id)
+        applications = get_all_job_applications(job_id)
+
+        # TODO: app: send application to resume analysis agent
+        agent = get_resume_analysis_agent()
+        result = agent.invoke(InputState(
+            job_info=job_data["info"],
+            job_name=job_data["name"],
+            resumes=applications
+        ))
+        # TODO: app: send the result back to ashby
+        if result['data']:
+            # update ashby fields with results
+            pass
+
+
+    except Exception as e:
+        app.logger.error(f"Error while running the agent: {str(e)}")
+        return jsonify({"error": f"Failed to process the request: {str(e)}"}), 500
+
+
+# Validation
+def _validate_resume_analysis_schema(data: Dict):
+    try:
+        data = request.get_json()
+        validate(instance=data, schema=_get_json_schema_resume_analysis())
+    except ValidationError as e:
+        raise ValidationError(f"Invalid JSON format: {e.message}")
+
+
+def _get_json_schema_resume_analysis():
+    return {
+        "type": "object",
+        "properties":{
+            "action": {"type": "string"},
+            "data": {"type": "object"},
+
+        },
+        "required": [JSON_JOB_INFO, JSON_NAME],
+        "additionalProperties": False
+    }
+
+
+def _validate_signature(request):
+    signature = request.headers.get("X-Ashby-Signature")
+    if not ASHBY_WEBHOOK_SECRET:
+        app.logger.error("ASHBY_WEBHOOK_SECRET not set")
+    if not signature:
+        app.logger.error("No signature provided.")
+        return False
+
+    # Recalculate signature
+    calculated_signature = hmac.new(
+        ASHBY_WEBHOOK_SECRET.encode(),
+        request.data,  # raw request body, not parsed JSON
+        hashlib.sha256,
+    ).hexdigest()
+
+    # Check if signatures match
+    return hmac.compare_digest(calculated_signature, signature)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

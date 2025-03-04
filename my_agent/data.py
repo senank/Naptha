@@ -2,12 +2,28 @@ import requests
 
 from typing import Dict
 from logging import getLogger
+from time import time
 
 logger = getLogger(__name__)
 from .constants import ASHBY_API_KEY, ASHBY_API_URL
 
 sync_token = None  # TODO: data: Determine if sync token lasts for all queries
 next_cursor = None  # TODO: data: Determine if cursor lasts for all queries
+last_updated = None
+
+# Ashby Pull Sync
+def _valid_time_difference(prev):
+    difference = (time() - prev) * 60 * 60 * 24  # days
+    if difference > 6:
+        return False
+    return True
+
+def _get_sync_token():
+    if not last_updated:
+        return None, None
+    if not _valid_time_difference(last_updated):
+        return None, None
+    return sync_token, next_cursor
 
 # APPLICANT DATA
 def get_all_job_applications(job_posting_id: str):
@@ -42,9 +58,9 @@ def _fetch_all_job_applications(job_posting_id: str):
 
 def _sync_job_id_application_ashby(url: str, payload: Dict):
     data = []
-
+    sync_token, next_cursor = _get_sync_token()
     if sync_token:  # Checks if already synced
-        # TODO: data: MUST BE CALLED ATLEAST 1 PER WEEK OR SYNC TOKEN EXPIRES
+        # ?: data: MUST BE CALLED ATLEAST ONCE PER 6 DAYS OR SYNC TOKEN EXPIRES
         payload['syncToken'] = sync_token
     
     if next_cursor:  # Checks where left off

@@ -52,7 +52,7 @@ from ..states.subgraph_states import AnalysisState
 # from .prompts import
 from ..models import get_model
 from ...externals import get_resumes, send_classified_resumes
-from ...constants import JSON_JOB_INFO, JSON_JOB_NAME
+from ...constants import JSON_JOB_INFO, JSON_NAME
 
 from typing import List
 
@@ -107,7 +107,7 @@ def preprocessor(state: InputState) -> AgentState:
                 "regeneration_count": 0
             }
     """
-    job_name = state.get(JSON_JOB_NAME, "")
+    job_name = state.get(JSON_NAME, "")
     job_info = state.get(JSON_JOB_INFO, "")
     resumes = state.get("resumes", [])
     return AgentState(
@@ -157,11 +157,11 @@ def initiate_analysis_nodes(state: AgentState) -> List[Send]:
     resumes = state['resumes']
     return [
         Send("create_analysis_subgraph", AnalysisState( #create_analysis_subgraph(article)
-                # TODO
+                # TODO: nodes: Sending each article for analysis
             )
         ) for resume in resumes
     ]
 
 
 def output_node(state: AgentState) -> OutputState:
-    pass  # TODO
+    pass  # TODO: nodes: return only scores above a certain threshold

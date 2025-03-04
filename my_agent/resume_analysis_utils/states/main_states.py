@@ -49,7 +49,7 @@ from typing import List, TypedDict, Tuple, Annotated, Literal, Dict
 from operator import add
 
 ### Input state ###
-class InputState(TypedDict): # First node
+class InputState(TypedDict):
     """
     Represents the input state for the first node in the client classification workflow.
 
@@ -63,7 +63,7 @@ class InputState(TypedDict): # First node
     application_data: List[Dict]
 
 ### Overall state ###
-class AgentState(TypedDict): # Overall State of graph
+class AgentState(TypedDict):  # TODO: states: Define AgentState
     """
     Represents the overall state of the workflow graph during execution.
 
@@ -80,7 +80,7 @@ class AgentState(TypedDict): # Overall State of graph
     classification: Annotated[List[Tuple[str, bool]], add]
 
 ### Output state ###
-class OutputState(TypedDict): # Last node
+class OutputState(TypedDict):  # TODO: states: Determine OutputState
     """
     Represents the output state for the final node in the client classification workflow.
 
