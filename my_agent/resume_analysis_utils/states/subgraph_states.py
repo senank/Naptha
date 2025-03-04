@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 ### Intermediate states ###
 # Classification states
-class AnalysisState(TypedDict):  #TODO: substate: Analysis state
+class AnalysisState(TypedDict):
     """
     Represents the intermediate state of the classification process.
 
@@ -14,8 +14,8 @@ class AnalysisState(TypedDict):  #TODO: substate: Analysis state
         regeneration_count (int): The number of times the article has been reclassified.
     """
     # Job stuff
-    job_name: str
-    job_info: str
+    job_name_subgraph: str
+    job_info_subgraph: str
 
     # Applicant stuff
     is_valid: bool

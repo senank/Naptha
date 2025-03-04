@@ -62,7 +62,7 @@ class InputState(TypedDict):
     applicants: List[Dict]
 
 ### Overall state ###
-class AgentState(TypedDict):  # TODO: states: Define AgentState
+class AgentState(TypedDict):
     """
     Represents the overall state of the workflow graph during execution.
 
@@ -80,7 +80,7 @@ class AgentState(TypedDict):  # TODO: states: Define AgentState
     classification: Annotated[List[Tuple[str, float]], add]
 
 ### Output state ###
-class OutputState(TypedDict):  # TODO: states: Determine OutputState
+class OutputState(TypedDict):
     """
     Represents the output state for the final node in the client classification workflow.
 

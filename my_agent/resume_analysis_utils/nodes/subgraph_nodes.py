@@ -19,6 +19,7 @@ def route_analysis(state: AnalysisState):
 
 # STEP 1
 def validate_github(state: AnalysisState):
+    logger.info(f"validating github for {state['github_username']}")
     if not _check_user_exists(state['github_username']):
         return {"is_valid": False}
     if not _check_contribution_count(state['github_username']):
@@ -48,9 +49,9 @@ def assess_candidate(state: AnalysisState):
     
     Gets a 3 part score that is then averaged to determine final_score
     """
-
-    prompt = job_grader.format(job_name=state['job_name'],
-                                job_info=state['job_info'],
+    logger.info("Assessing candidate")
+    prompt = job_grader.format(job_name=state['job_name_subgraph'],
+                                job_info=state['job_info_subgraph'],
                                 resume=state['resume'])
     model = get_model()
     response = model.with_structured_output(GraderOutput).invoke(prompt)
@@ -63,6 +64,7 @@ def assess_candidate(state: AnalysisState):
 
 # Final state
 def subgraph_output_node(state: AnalysisState) -> AgentState:
+    logger.info(f"outputing analysis of {state['github_username']} for {state['job_name_subgraph']}")
     if not state["is_valid"]:
         logger.info(f"the client is not valid because of github")
         return {"classification": [(state["applicant_id"], 0.0)]}

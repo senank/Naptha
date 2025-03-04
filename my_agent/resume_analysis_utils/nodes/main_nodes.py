@@ -111,6 +111,7 @@ def preprocessor(state: InputState) -> AgentState:
                 "regeneration_count": 0
             }
     """
+    logger.info("Preprocessing applicants for a given job")
     job_id = state["job_data"]["job_id"]
     job_name = state["job_data"]["name"]
     job_info = state["job_data"]["info"]
@@ -161,10 +162,11 @@ def initiate_analysis_nodes(state: AgentState) -> List[Send]:
             ]
     """
     applicants = state["applicants"]
+    logger.info("Initiating parallel processing of applications")
     return [
         Send("create_analysis_subgraph", AnalysisState(
-                job_name=state["job_name"],
-                job_info=state["job_info"],
+                job_name_subgraph=state["job_name"],
+                job_info_subgraph=state["job_info"],
                 is_valid=True,
                 applicant_id=applicant['id'],
                 github_username=applicant['github'],
@@ -176,7 +178,7 @@ def initiate_analysis_nodes(state: AgentState) -> List[Send]:
 
 
 def output_node(state: AgentState) -> OutputState:
-    logger.info(state)
+    logger.info("Returning analysis")
     return OutputState(
         job_id=state["job_id"],
         final_classification=state["classification"]

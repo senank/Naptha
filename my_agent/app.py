@@ -40,7 +40,7 @@ from jsonschema import validate, ValidationError
 
 
 from .resume_analysis import get_resume_analysis_agent
-from .data import get_all_job_applications, get_job_posting_data, _get_applicant_info
+from .data import get_all_job_applications, get_job_posting_data
 from .constants import JSON_NAME, JSON_JOB_INFO, JOB_IDS, ASHBY_WEBHOOK_SECRET
 
 from .resume_analysis_utils.states.main_states import InputState
@@ -70,64 +70,6 @@ def home():
     return "working!"
 
 @app.route('/resume_analysis', methods=['POST'])
-def resume_analysis():
-    """
-    Handles the `/resume_analysis` endpoint for processing daily summary requests.
-
-    This function validates the incoming JSON request, initializes the LangGraph 
-    daily summary workflow, and invokes the agent with the provided input data. 
-    The workflow processes the input to generate a daily summary, and the result 
-    is returned as a JSON response.
-
-    Returns:
-        Response: A Flask JSON response with the following:
-            - HTTP 200: If the workflow completes successfully, returns the status 
-              and the workflow result.
-            - HTTP 400: If the request content is not valid JSON or fails validation.
-            - HTTP 500: If an unexpected error occurs during workflow execution.
-
-    Example:
-        Request (POST /resume_analysis):
-        {
-            "JSON_CLIENT_NAME": "Client A",
-            "JSON_ARTICLES_TO_INCLUDE": ["Article 1", "Article 2"]
-        }
-
-        Response (HTTP 200):
-        {
-            "status": "success",
-            "result": {
-                ...
-            }
-        }
-    """
-    
-    try:
-        # Initialize the workflow
-
-        ### THIS IS A TEST BLOCK ###
-        data = _get_applicant_info("8b43949d-4720-4247-97c7-aab14d3b3ffd")
-        
-        ############################
-        
-        
-        job_data = get_job_posting_data("82646b74-6c72-41a2-85a2-c8988a71fd53")
-        app.logger.info(f"\n\n\n{job_data}\n\n\n")
-        applicants=[data]
-        # TODO: app: send application to resume analysis agent
-        agent = get_resume_analysis_agent()
-        result = agent.invoke(InputState(
-            job_data=job_data,
-            applicants=applicants
-        ))
-
-        # Return the result as JSON
-        return jsonify({"status": "success", "result": result}), 200
-
-    except Exception as e:
-        app.logger.error(f"Error while running the agent: {str(e)}")
-        return jsonify({"error": f"Failed to process the request: {str(e)}"}), 500
-
 def ashby_webhook(request: Request):
     """
     This function gets triggered on webhooks from ashby on application creations.
@@ -138,7 +80,7 @@ def ashby_webhook(request: Request):
         - Updates Ashby CustomField to reflect the score
     """
     # Validate request comes from Ashby webhook
-    if not _validate_signature(request):
+    if not _validate_signature(request):  # TODO: app: Validate signature of webhook
         app.logger.error("Invalid signature. Rejecting request.")
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -151,17 +93,17 @@ def ashby_webhook(request: Request):
     data = request.get_json()
 
     # Validate request schema
-    if not _validate_resume_analysis_schema(data):
+    if not _validate_resume_analysis_schema(data):  # TODO: app: Validate schema of webhook
         app.logger.error("Invalid JSON format.")
         return jsonify({"error": "Invalid JSON format"}), 500
     
     # Checks event type is application created
     if data['action'] != "applicationSubmit":
-        return
+        return jsonify({"message": "Not a submitted application"}), 200
     
     # Checks the job is for the job wanted
-    if data['data']['job']['id'] in JOB_IDS:
-        return
+    if data['data']['job']['id'] in JOB_IDS:  # TODO: app: Get job_id
+        return jsonify({"message": "Not a valid job ID"}), 200
     
     try:
         # Get all new applicants for this job_id
@@ -169,7 +111,7 @@ def ashby_webhook(request: Request):
         job_data = get_job_posting_data(job_id)
         applicants = get_all_job_applications(job_id)
 
-        # TODO: app: send application to resume analysis agent
+        # send application to resume analysis agent
         agent = get_resume_analysis_agent()
         result = agent.invoke(InputState(
             job_data=job_data,
@@ -179,7 +121,6 @@ def ashby_webhook(request: Request):
         if result['data']:
             # update ashby fields with results
             pass
-
 
     except Exception as e:
         app.logger.error(f"Error while running the agent: {str(e)}")
