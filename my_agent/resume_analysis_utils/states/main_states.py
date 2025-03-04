@@ -89,5 +89,5 @@ class OutputState(TypedDict):  # TODO: states: Determine OutputState
         classification (List[Tuple[str, str]]): The final classification of articles
     """
     job_id: str
-    classification: List[Tuple[str, bool]]
+    final_classification: List[Tuple[str, float]]
 

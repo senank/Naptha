@@ -179,5 +179,5 @@ def output_node(state: AgentState) -> OutputState:
     logger.info(state)
     return OutputState(
         job_id=state["job_id"],
-        classification=state["classification"]
+        final_classification=state["classification"]
     )

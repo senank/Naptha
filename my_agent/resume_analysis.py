@@ -88,7 +88,7 @@ def get_resume_analysis_agent():
 
 def create_analysis_subgraph():
     logger.info("Constructing subgraph for classification")
-    workflow = StateGraph(AnalysisState)
+    workflow = StateGraph(AnalysisState, output=AgentState)
     workflow.add_node("step_1", validate_github)
     workflow.add_node("step_2", assess_candidate)
     workflow.add_node("subgraph_output_node", subgraph_output_node)
