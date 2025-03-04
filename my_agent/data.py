@@ -175,6 +175,7 @@ def _send_request_to_ashby(url: str, payload: str):
 # JOB DATA
 def get_job_posting_data(job_id: str):
     # Get Job Posting ID
+    logger.info("getting job posting from id")
     url = ASHBY_API_URL + "/job.info"
     json = {
         "id": job_id
@@ -186,6 +187,7 @@ def get_job_posting_data(job_id: str):
     job_posting_id = job_data["jobPostingIds"][0]
     
     # Get job info from posting
+    logger.info("getting job info from posting")
     url = ASHBY_API_URL + "/jobPosting.info"
     json = {
         "jobPostingId": job_posting_id

@@ -51,7 +51,7 @@ def assess_candidate(state: AnalysisState):
 
     prompt = job_grader.format(job_name=state['job_name'],
                                 job_info=state['job_info'],
-                                applicant=state['resume'])
+                                resume=state['resume'])
     model = get_model()
     response = model.with_structured_output(GraderOutput).invoke(prompt)
     scores = response.technical_expertise + response.practical_experience + response.job_alignment
@@ -64,6 +64,8 @@ def assess_candidate(state: AnalysisState):
 # Final state
 def subgraph_output_node(state: AnalysisState) -> AgentState:
     if not state["is_valid"]:
+        logger.info(f"the client is not valid because of github")
         return {"classification": [(state["applicant_id"], 0.0)]}
-    return {"classification": [(state["applicant_id"], state['final_score'])]}
+    logger.info(f"the client is valid, score = {state['final_score']}")
+    return {"classification": [(state["applicant_id"], float(state['final_score']))]}
 

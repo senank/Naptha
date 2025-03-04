@@ -77,7 +77,7 @@ class AgentState(TypedDict):  # TODO: states: Define AgentState
     job_name: str
     job_info: str
     applicants: List[Dict]
-    classification: Annotated[List[Tuple[str, bool]], add]
+    classification: Annotated[List[Tuple[str, float]], add]
 
 ### Output state ###
 class OutputState(TypedDict):  # TODO: states: Determine OutputState

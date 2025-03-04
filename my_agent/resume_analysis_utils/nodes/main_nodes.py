@@ -56,6 +56,10 @@ from ...constants import JSON_JOB_INFO, JSON_NAME
 
 from typing import List
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 from langgraph.constants import Send
 
 ### Nodes Implementation ###
@@ -107,7 +111,7 @@ def preprocessor(state: InputState) -> AgentState:
                 "regeneration_count": 0
             }
     """
-    job_id = state["job_data"]["id"]
+    job_id = state["job_data"]["job_id"]
     job_name = state["job_data"]["name"]
     job_info = state["job_data"]["info"]
     applicants = state["applicants"]
@@ -164,7 +168,7 @@ def initiate_analysis_nodes(state: AgentState) -> List[Send]:
                 is_valid=True,
                 applicant_id=applicant['id'],
                 github_username=applicant['github'],
-                resume=['resume'],
+                resume=applicant['resume'],
                 final_score=0.0
             )
         ) for applicant in applicants
@@ -172,6 +176,7 @@ def initiate_analysis_nodes(state: AgentState) -> List[Send]:
 
 
 def output_node(state: AgentState) -> OutputState:
+    logger.info(state)
     return OutputState(
         job_id=state["job_id"],
         classification=state["classification"]

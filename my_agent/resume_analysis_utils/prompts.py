@@ -10,5 +10,5 @@ Grade the applicant on a scale of 1-100 based on the following criterea:
 <job_info>{job_info}</job_info>
 
 *Applicant information*
-<resume>{applicant}</resume>
+<resume>{resume}</resume>
 """
