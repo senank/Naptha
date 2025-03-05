@@ -8,10 +8,10 @@ from io import BytesIO
 from PyPDF2 import PdfReader
 
 logger = getLogger(__name__)
-from .constants import ASHBY_API_KEY, ASHBY_API_URL
+from .constants import ASHBY_API_KEY, ASHBY_API_URL, ASHBY_CUSTOM_FIELD
 
-sync_token = None  # TODO: data: Determine if sync token lasts for all queries
-next_cursor = None  # TODO: data: Determine if cursor lasts for all queries
+sync_token = None  # ? TODO: data: Determine if sync token lasts for all queries
+next_cursor = None  # ? TODO: data: Determine if cursor lasts for all queries
 last_updated = None
 
 # Ashby Pull Sync
@@ -46,7 +46,7 @@ def _get_applicant_info(id_):
     json = {
         "id": id_,
     }
-    app_info = {'id': id_}
+    app_info = {'cand_id': id_}
     response_data = _send_request_to_ashby(url, json)
     app_info["name"] = response_data["name"]
     
@@ -70,10 +70,11 @@ def _get_relevant_application_data(applications: List[Dict]) -> List[Dict]:
     """
     processed_applications = []
     for application in applications:
-        if application['status'] != "active" or application["currentInterviewStage"]["type"] != "PreInterviewScreen":
+        if application['status'] != "active" or application["currentInterviewStage"]["type"] != "PreInterviewScreen":  #? what is needed to not consider application
             continue
         cand_id = application['candidate']['id']
         applicant = _get_applicant_info(cand_id)
+        applicant['app_id'] = application['id']
         if applicant.get("github", ""):
             processed_applications.append(applicant)
     return processed_applications
@@ -220,4 +221,23 @@ def _send_fetch_job_description(url: str, payload: Dict):
     ).json()["results"]
 
 
+# UPDATE ASHBY
+def update_fields_in_ashby(candidates):
+    for application_id, score in candidates:
+        logger.info(f"{application_id} {score}")
+        # update customfield for ashby
+        update_response = _update_field(application_id, float(score))
+        logger.info(f"{update_response}")
+    logger.info(f"Successfully updated all fields")
+    
+
+def _update_field(candidate_id, score):
+    url = ASHBY_API_URL + "/customField.setValue"
+    payload = {
+        "objectType": "Application",
+        "fieldValue": score,
+        "fieldId": ASHBY_CUSTOM_FIELD,
+        "objectId": candidate_id
+    }
+    return _send_request_to_ashby(url, payload)
 

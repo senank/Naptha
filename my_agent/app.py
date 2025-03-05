@@ -40,8 +40,8 @@ from jsonschema import validate, ValidationError
 
 
 from .resume_analysis import get_resume_analysis_agent
-from .data import get_all_job_applications, get_job_posting_data
-from .constants import JSON_NAME, JSON_JOB_INFO, JOB_IDS, ASHBY_WEBHOOK_SECRET
+from .data import get_all_job_applications, get_job_posting_data, update_fields_in_ashby
+from .constants import JOB_IDS, ASHBY_WEBHOOK_SECRET
 
 from .resume_analysis_utils.states.main_states import InputState
 import logging
@@ -69,18 +69,6 @@ app = Flask(__name__)
 def home():
     return "working!"
 
-@app.route('/test_ashby_webhook', methods=['POST'])
-def test_ashby_webhook():
-    """
-    This function tests webhooks
-    """
-    data = request.get_json()
-    # Validate request comes from Ashby webhook
-    if not _validate_signature(request):
-        app.logger.error("Invalid signature. Rejecting request.")
-        return jsonify({"error": "Unauthorized"}), 401
-    app.logger.info(f"{data}")
-    return jsonify({"message": f"got webhook with {data}"}), 200
 
 
 @app.route('/resume_analysis', methods=['POST'])
@@ -132,10 +120,15 @@ def resume_analysis():
             job_data=job_data,
             applicants=applicants
         ))
-        # TODO: app: send the result back to ashby
-        if result['data']:
-            # update ashby fields with results
-            pass
+
+        if not result['result']:
+            return jsonify({"error": "agent failed"}), 500
+        
+        # update ashby fields with results
+        classifications = result['result']['final_classification']
+        update_fields_in_ashby(classifications)
+        return jsonify({"message": f"Successfully updated {len(classifications)} candidates"}), 200 
+
 
     except Exception as e:
         app.logger.error(f"Error while running the agent: {str(e)}")

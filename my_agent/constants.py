@@ -14,11 +14,8 @@ The constants are categorized into the following sections:
 import os
 
 # JSON Keys
-JSON_DAILY_OUTPUT_FORMAT = 'daily_output_style'
-JSON_JOB_INFO = 'client_info'
-JSON_NAME = 'client_name'
-JSON_JOB = 'job_id'
 JOB_IDS = ["82646b74-6c72-41a2-85a2-c8988a71fd53"]
+ASHBY_CUSTOM_FIELD = "3fbc8a21-18a1-4a61-b435-e76b80ff3eea"
 
 # Ashby API
 ASHBY_API_KEY = os.getenv("ASHBY_API_KEY", "")

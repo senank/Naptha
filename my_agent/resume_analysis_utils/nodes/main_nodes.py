@@ -52,7 +52,6 @@ from ..states.subgraph_states import AnalysisState
 # from .prompts import
 from ..models import get_model
 from ...externals import get_resumes, send_classified_resumes
-from ...constants import JSON_JOB_INFO, JSON_NAME
 
 from typing import List
 
@@ -168,7 +167,7 @@ def initiate_analysis_nodes(state: AgentState) -> List[Send]:
                 job_name_subgraph=state["job_name"],
                 job_info_subgraph=state["job_info"],
                 is_valid=True,
-                applicant_id=applicant['id'],
+                applicant_id=applicant['app_id'],
                 github_username=applicant['github'],
                 resume=applicant['resume'],
                 final_score=0.0
