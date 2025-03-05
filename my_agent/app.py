@@ -74,7 +74,11 @@ def test_ashby_webhook():
     """
     This function tests webhooks
     """
-    data = request.json()
+    data = request.get_json()
+    # Validate request comes from Ashby webhook
+    if not _validate_signature(request):
+        app.logger.error("Invalid signature. Rejecting request.")
+        return jsonify({"error": "Unauthorized"}), 401
     app.logger.info(f"{data}")
     return jsonify({"message": f"got webhook with {data}"}), 200
 
@@ -90,9 +94,9 @@ def resume_analysis():
         - Updates Ashby CustomField to reflect the score
     """
     # Validate request comes from Ashby webhook
-    # if not _validate_signature(request):  # TODO: app: Validate signature of webhook
-    #     app.logger.error("Invalid signature. Rejecting request.")
-    #     return jsonify({"error": "Unauthorized"}), 401
+    if not _validate_signature(request):
+        app.logger.error("Invalid signature. Rejecting request.")
+        return jsonify({"error": "Unauthorized"}), 401
 
     # Check response is json
     if not request.is_json:
@@ -113,12 +117,12 @@ def resume_analysis():
         return jsonify({"message": "Not a submitted application"}), 200
     
     # Checks the job is for the job wanted
-    if data['data']['job']['id'] in JOB_IDS:  # TODO: app: Get job_id
+    if data['data']['application']['job']['id'] not in JOB_IDS:
         return jsonify({"message": "Not a valid job ID"}), 200
     
     try:
         # Get all new applicants for this job_id
-        job_id = data['data']['job']['id']
+        job_id = data['data']['application']['job']['id']
         job_data = get_job_posting_data(job_id)
         applicants = get_all_job_applications(job_id)
 
@@ -161,22 +165,17 @@ def _get_json_schema_resume_analysis():
 
 
 def _validate_signature(request):
-    signature = request.headers.get("X-Ashby-Signature")
+    secret = request["results"]['secretToken']
     if not ASHBY_WEBHOOK_SECRET:
         app.logger.error("ASHBY_WEBHOOK_SECRET not set")
-    if not signature:
+    if not secret:
         app.logger.error("No signature provided.")
         return False
 
-    # Recalculate signature
-    calculated_signature = hmac.new(
-        ASHBY_WEBHOOK_SECRET.encode(),
-        request.data,  # raw request body, not parsed JSON
-        hashlib.sha256,
-    ).hexdigest()
-
-    # Check if signatures match
-    return hmac.compare_digest(calculated_signature, signature)
+    # ? TODO: Add secret
+    app.logger.info(f"\n\nSECRET FROM WEB: {secret}")
+    app.logger.info(f"\n\n{ASHBY_WEBHOOK_SECRET}\n\n")
+    return ASHBY_WEBHOOK_SECRET == secret
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

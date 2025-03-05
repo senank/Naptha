@@ -1,13 +1,9 @@
 import requests
 from my_agent.constants import ASHBY_API_KEY
 
-url = "https://api.ashbyhq.com/webhook.create"
+url = "https://api.ashbyhq.com/webhook.delete"
 
-payload = {
-    "webhookType": "applicationSubmit",
-    "requestUrl": "https://3bef-142-59-161-199.ngrok-free.app/test_ashby_webhook",
-    "secretToken": "secret"
-}
+payload = { "webhookId": "44f7611e-5740-4421-aa79-5dfde01f46eb" }
 headers = {
     "accept": "application/json",
     "content-type": "application/json"
