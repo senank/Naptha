@@ -1,0 +1,56 @@
+{
+    "data": {
+        "application": {
+            "id": "1e1cd93f-45b0-41d5-9a74-ab2848b2b981", 
+            "createdAt": "2025-03-05T00:41:37.580Z", 
+            "updatedAt": "2025-03-05T00:41:39.005Z", 
+            "candidate": {
+                "id": "9f6ecd84-6ff2-4b24-bc5c-c0566fabec38", 
+                "name": "Marat Asadurian", 
+                "primaryEmailAddress": {
+                    "value": "marat.asadurian@gmail.com", 
+                    "type": "Personal", 
+                    "isPrimary": true
+                }, 
+                "primaryPhoneNumber": {
+                    "value": "7788873258", 
+                    "type": "Personal", 
+                    "isPrimary": true
+                }
+            }, 
+            "status": "Active", 
+            "customFields": [], 
+            "currentInterviewStage": {
+                "id": "d06a9496-e5d5-479a-8dc3-c44dcbc360d6", 
+                "title": "Application Review", 
+                "type": "PreInterviewScreen", 
+                "interviewPlanId": "78f3e95c-8ebb-4076-9a19-57c59d88b0c1", 
+                "orderInInterviewPlan": 3, 
+                "interviewStageGroupId": "7c254379-fb45-4e7b-aff7-aae52674c0fc"
+            }, 
+            "source": {
+                "id": "43c4c9eb-566b-43e8-80a7-09e73ab89bcc", 
+                "title": "LinkedIn Limited Listings", 
+                "isArchived": false, 
+                "sourceType": {"id": "75419bcc-4812-4bd7-bf56-6e8c41bfeff2", 
+                "title": "Inbound", 
+                "isArchived": false}
+            }, 
+            "creditedToUser": null, 
+            "archiveReason": null, 
+            "job": {
+                "id": "82646b74-6c72-41a2-85a2-c8988a71fd53", 
+                "title": "Software Engineer (Intern)", 
+                "locationId": "2edb71c9-8c8d-4ae6-8b53-cd8262c962f7", 
+                "departmentId": "ba8a0186-fe17-41a6-814e-7768ae30847c", 
+                "brandId": "a0edb046-2726-4d95-ba79-3d2ef41664a0"
+            }, 
+            "hiringTeam": [], 
+            "appliedViaJobPostingId": "984e8a13-d3c2-47ef-8dfa-bf170bfe71f3", 
+            "submitterClientIp": "2001:569:5858:6300:ac63:3c9a:1e7b:f302", 
+            "submitterUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 OPR/117.0.0.0"
+        }
+    }, 
+    "action": "applicationSubmit", 
+    "webhookActionId": "9fa68ee1-9bdb-457f-9daf-9d03ab7d4cb2"
+}
