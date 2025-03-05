@@ -40,7 +40,7 @@ from jsonschema import validate, ValidationError
 
 
 from .resume_analysis import get_resume_analysis_agent
-from .data import get_all_job_applications, get_job_posting_data, update_fields_in_ashby
+from .data import get_all_job_applications, get_job_posting_data, update_fields_in_ashby, get_batch_job_applications
 from .constants import JOB_IDS, ASHBY_WEBHOOK_SECRET
 
 from .resume_analysis_utils.states.main_states import InputState
@@ -69,6 +69,28 @@ app = Flask(__name__)
 def home():
     return "working!"
 
+@app.route('/test_ashby_webhook', methods=['POST'])
+def test_ashby_webhook():
+    """
+    This function tests webhooks
+    """
+
+    ### TEST BLOCK ###
+    data = request.get_json()
+    # Validate request comes from Ashby webhook
+    if not _validate_signature(request):
+        app.logger.error("Invalid signature. Rejecting request.")
+        return jsonify({"error": "Unauthorized"}), 401
+    app.logger.info(f"{data}")
+    ##################
+
+
+    data = [["e35db502-d2e1-4478-af90-ec2e87163c80", 10.1]]
+    update_fields_in_ashby(data)
+    
+    
+    return jsonify({"message": f"updated {data}"}), 200
+
 
 @app.route('/resume_analysis', methods=['POST'])
 def resume_analysis():
@@ -80,11 +102,6 @@ def resume_analysis():
         - Passes resumes to the agent
         - Updates Ashby CustomField to reflect the score
     """
-    # Validate request comes from Ashby webhook
-    if not _validate_signature(request):
-        app.logger.error("Invalid signature. Rejecting request.")
-        return jsonify({"error": "Unauthorized"}), 401
-
     # Check response is json
     if not request.is_json:
         app.logger.error("Request content is not JSON.")
@@ -92,13 +109,7 @@ def resume_analysis():
     
     app.logger.debug("Received JSON data")
     data = request.get_json()
-    app.logger.info(f"\n\n{data}\n\n")
 
-    # Validate request schema
-    if not _validate_resume_analysis_schema(data):
-        app.logger.error("Invalid JSON format.")
-        return jsonify({"error": "Invalid JSON format"}), 500
-    
     # Checks event type is application created
     if data['action'] != "applicationSubmit":
         return jsonify({"message": "Not a submitted application"}), 200
@@ -111,7 +122,7 @@ def resume_analysis():
         # Get all new applicants for this job_id
         job_id = data['data']['application']['job']['id']
         job_data = get_job_posting_data(job_id)
-        applicants = get_all_job_applications(job_id)
+        applicants = get_batch_job_applications(job_id)
 
         # send application to resume analysis agent
         agent = get_resume_analysis_agent()

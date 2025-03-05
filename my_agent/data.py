@@ -41,6 +41,16 @@ def get_all_job_applications(job_posting_id: str) -> List[Dict]:
     return relevant_applications
 
 
+def get_batch_job_applications(job_posting_id: str) -> List[Dict]:
+    """
+    Parses all applications and formats a new list where all are new
+    """
+    logger.info(f"getting job applications for {job_posting_id}")
+    applications = _fetch_batch_job_applications(job_posting_id)
+    relevant_applications = _get_relevant_application_data(applications)
+    return relevant_applications
+
+
 def _get_applicant_info(id_):
     url = ASHBY_API_URL + "/candidate.info"
     json = {
@@ -113,6 +123,22 @@ def _fetch_all_job_applications(job_posting_id: str):
     }
     # applications = _sync_job_id_application_ashby(url, json)
     applications = _sync_job_id_application_ashby(url, json)
+
+    logger.info(f"Found {len(applications)} from endpoint")
+    if applications:
+        logger.info(f"Applications look like this:\n\n{applications[0]}\n\n")
+    return applications
+
+def _fetch_batch_job_applications(job_posting_id: str):
+    """
+    Gets all job applications to a specific job
+    """
+    url = ASHBY_API_URL + "/application.list"
+    json = {
+        "limit": 5,
+        "jobId": job_posting_id
+    }
+    applications = _send_request_to_ashby(url, json)
 
     logger.info(f"Found {len(applications)} from endpoint")
     if applications:
