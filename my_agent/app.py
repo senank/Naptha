@@ -70,7 +70,6 @@ def home():
     return "working!"
 
 
-
 @app.route('/resume_analysis', methods=['POST'])
 def resume_analysis():
     """
@@ -158,17 +157,22 @@ def _get_json_schema_resume_analysis():
 
 
 def _validate_signature(request):
-    secret = request["results"]['secretToken']
-    if not ASHBY_WEBHOOK_SECRET:
-        app.logger.error("ASHBY_WEBHOOK_SECRET not set")
-    if not secret:
-        app.logger.error("No signature provided.")
-        return False
+    try:
+        app.logger.info(f"this is the json {request.get_json()}")
+        # app.logger.info(f"{request.json()}")
+        secret = request["results"]['secretToken']
+        if not ASHBY_WEBHOOK_SECRET:
+            app.logger.error("ASHBY_WEBHOOK_SECRET not set")
+            return False
+        
+        if not secret:
+            app.logger.error("No signature provided.")
+            return False
 
-    # ? TODO: Add secret
-    app.logger.info(f"\n\nSECRET FROM WEB: {secret}")
-    app.logger.info(f"\n\n{ASHBY_WEBHOOK_SECRET}\n\n")
-    return ASHBY_WEBHOOK_SECRET == secret
+        # ? TODO: Add secret and encryption
+        return ASHBY_WEBHOOK_SECRET == secret
+    except Exception as e:
+        app.logger.info(f"Failed to validate secret {e}")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

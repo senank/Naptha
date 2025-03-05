@@ -108,7 +108,7 @@ def _fetch_all_job_applications(job_posting_id: str):
     """
     url = ASHBY_API_URL + "/application.list"
     json = {
-        "limit": 1,
+        "limit": 50,
         "jobId": job_posting_id
     }
     # applications = _sync_job_id_application_ashby(url, json)
