@@ -131,11 +131,11 @@ def resume_analysis():
             applicants=applicants
         ))
 
-        if not result['result']:
+        if not result:
             return jsonify({"error": "agent failed"}), 500
         
         # update ashby fields with results
-        classifications = result['result']['final_classification']
+        classifications = result['final_classification']
         update_fields_in_ashby(classifications)
         return jsonify({"message": f"Successfully updated {len(classifications)} candidates"}), 200 
 
@@ -171,7 +171,7 @@ def _validate_signature(request):
     try:
         app.logger.info(f"this is the json {request.get_json()}")
         # app.logger.info(f"{request.json()}")
-        secret = request["results"]['secretToken']
+        secret = request.get_json()["results"]['secretToken']
         if not ASHBY_WEBHOOK_SECRET:
             app.logger.error("ASHBY_WEBHOOK_SECRET not set")
             return False
