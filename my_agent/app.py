@@ -40,7 +40,7 @@ from jsonschema import validate, ValidationError
 
 
 from .resume_analysis import get_resume_analysis_agent
-from .data import get_all_job_applications, get_job_posting_data, update_fields_in_ashby, get_batch_job_applications
+from .data import get_all_job_applications, get_job_posting_data, update_fields_in_ashby
 from .constants import JOB_IDS, ASHBY_WEBHOOK_SECRET
 
 from .resume_analysis_utils.states.main_states import InputState
@@ -88,6 +88,10 @@ def resume_analysis():
     app.logger.debug("Received JSON data")
     data = request.get_json()
 
+    _validate_resume_analysis_schema(data)
+    if not _validate_signature(request):
+        return jsonify({"error": "Invalid signature from webhook"}), 400
+
     # Checks event type is application created
     if data['action'] != "applicationSubmit":
         return jsonify({"message": "Not a submitted application"}), 200
@@ -117,7 +121,8 @@ def resume_analysis():
         update_fields_in_ashby(classifications)
         return jsonify({"message": f"Successfully updated {len(classifications)} candidates"}), 200 
 
-
+    except ValidationError as e:
+        return jsonify({"error": f"incorrect data input: {str(e)}"}), 500
     except Exception as e:
         app.logger.error(f"Error while running the agent: {str(e)}")
         return jsonify({"error": f"Failed to process the request: {str(e)}"}), 500
