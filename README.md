@@ -6,7 +6,7 @@ LANGCHAIN_TRACING_V2=
 ASHBY_API_KEY=
 ```
 
-2) ```docker-compose.prod.yml up --build```
+2) ```docker-compose -f docker-compose.prod.yml up --build```
     - application lives on 8000 port
     - use ```ngrok http 80``` for nginx and expose nginx app for webhook
 
