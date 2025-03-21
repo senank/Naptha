@@ -69,28 +69,6 @@ app = Flask(__name__)
 def home():
     return "working!"
 
-@app.route('/test_ashby_webhook', methods=['POST'])
-def test_ashby_webhook():
-    """
-    This function tests webhooks
-    """
-
-    ### TEST BLOCK ###
-    data = request.get_json()
-    # Validate request comes from Ashby webhook
-    if not _validate_signature(request):
-        app.logger.error("Invalid signature. Rejecting request.")
-        return jsonify({"error": "Unauthorized"}), 401
-    app.logger.info(f"{data}")
-    ##################
-
-
-    data = [["e35db502-d2e1-4478-af90-ec2e87163c80", 10.1]]
-    update_fields_in_ashby(data)
-    
-    
-    return jsonify({"message": f"updated {data}"}), 200
-
 
 @app.route('/resume_analysis', methods=['POST'])
 def resume_analysis():
@@ -122,7 +100,7 @@ def resume_analysis():
         # Get all new applicants for this job_id
         job_id = data['data']['application']['job']['id']
         job_data = get_job_posting_data(job_id)
-        applicants = get_batch_job_applications(job_id)
+        applicants = get_all_job_applications(job_id)
 
         # send application to resume analysis agent
         agent = get_resume_analysis_agent()
