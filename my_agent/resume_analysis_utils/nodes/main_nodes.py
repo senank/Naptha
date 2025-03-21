@@ -50,8 +50,6 @@ Example Workflow Integration:
 from ..states.main_states import AgentState, InputState, OutputState
 from ..states.subgraph_states import AnalysisState
 # from .prompts import
-from ..models import get_model
-from ...externals import get_resumes, send_classified_resumes
 
 from typing import List
 

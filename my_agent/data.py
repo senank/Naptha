@@ -59,18 +59,20 @@ def _get_applicant_info(id_):
     app_info = {'cand_id': id_}
     response_data = _send_request_to_ashby(url, json)
     app_info["name"] = response_data["name"]
+    app_info["github"] = ""
     
     # get github username
     for link in response_data["socialLinks"]:
         if link["type"] == "GitHub":
             app_info["github"] = link["url"].rstrip("/").split("/")[-1]
             break
-    if not app_info.get("github", ""):  # only here to prevent unneccessary calls to api
+        
+    if not app_info["github"]:  # only here to prevent unneccessary calls to Ashby api
+        app_info["resume"] = ""
         return app_info
     
     # Get resume link
     app_info["resume"] = _get_resume_data(response_data["resumeFileHandle"]["handle"])
-
     return app_info
 
 
@@ -85,8 +87,8 @@ def _get_relevant_application_data(applications: List[Dict]) -> List[Dict]:
         cand_id = application['candidate']['id']
         applicant = _get_applicant_info(cand_id)
         applicant['app_id'] = application['id']
-        if applicant.get("github", ""):
-            processed_applications.append(applicant)
+        # if applicant.get("github", ""):
+        processed_applications.append(applicant)
     return processed_applications
 
 

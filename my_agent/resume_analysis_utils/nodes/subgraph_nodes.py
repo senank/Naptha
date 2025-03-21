@@ -20,6 +20,8 @@ def route_analysis(state: AnalysisState):
 # STEP 1
 def validate_github(state: AnalysisState):
     logger.info(f"validating github for {state['github_username']}")
+    if not state['github_username']:
+        return {"is_valid": False}
     if not _check_user_exists(state['github_username']):
         return {"is_valid": False}
     if not _check_contribution_count(state['github_username']):
