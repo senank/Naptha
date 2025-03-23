@@ -13,11 +13,19 @@ The constants are categorized into the following sections:
 """
 import os
 
-# JSON Keys
 JOB_IDS = ["82646b74-6c72-41a2-85a2-c8988a71fd53"]
-ASHBY_CUSTOM_FIELD = "3fbc8a21-18a1-4a61-b435-e76b80ff3eea"
+TECH_JOBS = ["Software Engineer (Intern)"]
+NON_TECH_JOBS = []
 
 # Ashby API
 ASHBY_API_KEY = os.getenv("ASHBY_API_KEY", "")
-ASHBY_API_URL = "https://api.ashbyhq.com"
 ASHBY_WEBHOOK_SECRET = os.getenv("ASHBY_WEBHOOK_SECRET", "")
+ASHBY_API_URL = "https://api.ashbyhq.com"
+ASHBY_SCORE_FIELD_ID = "3fbc8a21-18a1-4a61-b435-e76b80ff3eea"
+
+if not ASHBY_API_KEY:
+    raise ValueError("ASHBY_API_KEY must be set in the environment variables.")
+
+if not ASHBY_WEBHOOK_SECRET:
+    raise ValueError("ASHBY_WEBHOOK_SECRET must be set in the environment variables.")
+

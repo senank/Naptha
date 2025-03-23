@@ -40,7 +40,7 @@ from jsonschema import validate, ValidationError
 
 
 from .resume_analysis import get_resume_analysis_agent
-from .data import get_all_job_applications, get_job_posting_data, update_fields_in_ashby
+from .data import AshbyClient, ApplicationProcessor
 from .constants import JOB_IDS, ASHBY_WEBHOOK_SECRET
 
 from .resume_analysis_utils.states.main_states import InputState
@@ -88,6 +88,10 @@ def resume_analysis():
     app.logger.debug("Received JSON data")
     data = request.get_json()
 
+    if not data:
+        app.logger.error("No data recieved in response")
+        return jsonify({"error": "No data prorecievedvided in response"}), 400
+
     _validate_resume_analysis_schema(data)
     if not _validate_signature(request):
         return jsonify({"error": "Invalid signature from webhook"}), 400
@@ -97,14 +101,17 @@ def resume_analysis():
         return jsonify({"message": "Not a submitted application"}), 200
     
     # Checks the job is for the job wanted
-    if data['data']['application']['job']['id'] not in JOB_IDS:
+    job_id = data['data']['application']['job']['id']
+    if job_id not in JOB_IDS:
         return jsonify({"message": "Not a valid job ID"}), 200
     
     try:
         # Get all new applicants for this job_id
-        job_id = data['data']['application']['job']['id']
-        job_data = get_job_posting_data(job_id)
-        applicants = get_all_job_applications(job_id)
+        client = AshbyClient()
+        application_processor = ApplicationProcessor(client)
+        job_data = client.get_job_data(job_id)
+        job_name = job_data["name"]
+        applicants = application_processor.get_applications(job_id, job_name)
 
         # send application to resume analysis agent
         agent = get_resume_analysis_agent()
@@ -118,7 +125,7 @@ def resume_analysis():
         
         # update ashby fields with results
         classifications = result['final_classification']
-        update_fields_in_ashby(classifications)
+        client.update_application_score(classifications)
         return jsonify({"message": f"Successfully updated {len(classifications)} candidates"}), 200 
 
     except ValidationError as e:
@@ -155,13 +162,6 @@ def _validate_signature(request):
         app.logger.info(f"this is the json {request.get_json()}")
         # app.logger.info(f"{request.json()}")
         secret = request.get_json()["results"]['secretToken']
-        if not ASHBY_WEBHOOK_SECRET:
-            app.logger.error("ASHBY_WEBHOOK_SECRET not set")
-            return False
-        
-        if not secret:
-            app.logger.error("No signature provided.")
-            return False
 
         # ? TODO: Add secret and encryption
         return ASHBY_WEBHOOK_SECRET == secret
