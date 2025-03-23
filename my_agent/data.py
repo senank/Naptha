@@ -10,24 +10,30 @@ from PyPDF2 import PdfReader
 logger = getLogger(__name__)
 from .constants import ASHBY_API_KEY, ASHBY_API_URL, ASHBY_CUSTOM_FIELD
 
-sync_token = None  # ? TODO: data: Determine if sync token lasts for all queries
-next_cursor = None  # ? TODO: data: Determine if cursor lasts for all queries
-last_updated = None
+class SyncToken:
+    _sync_token = None  # ? TODO: data: Determine if sync token lasts for all queries
+    _next_cursor = None  # ? TODO: data: Determine if cursor lasts for all queries
+    _last_updated = None
 
-# Ashby Pull Sync
-def _valid_time_difference(prev):
-    difference = (time() - prev) * 60 * 60 * 24  # days
-    if difference > 6:
-        return False
-    return True
+    @classmethod
+    def get_sync_token(cls):
+        if not cls._last_updated:
+            return None, None
+        if not cls._valid_time_difference():
+            return None, None
+        return cls.sync_token, cls.next_cursor
+    
+    @classmethod
+    def set_sync_token(cls, token, cursor):
+        cls.sync_token = token
+        cls._last_updated = time()
+        cls._next_cursor = cursor
 
-
-def _get_sync_token():
-    if not last_updated:
-        return None, None
-    if not _valid_time_difference(last_updated):
-        return None, None
-    return sync_token, next_cursor
+    @classmethod
+    def _valid_time_difference(cls):
+        difference_in_secs = (time() - cls._last_updated) 
+        difference_in_days = difference_in_secs / (60 * 60 * 24)
+        return difference_in_days <= 6
 
 
 # APPLICANT DATA
@@ -124,7 +130,7 @@ def _fetch_all_job_applications(job_posting_id: str):
 
 def _sync_job_id_application_ashby(url: str, payload: Dict):
     data = []
-    sync_token, next_cursor = _get_sync_token()
+    sync_token, next_cursor = SyncToken.get_sync_token()
     if sync_token:  # Checks if already synced
         # ?: data: MUST BE CALLED ATLEAST ONCE PER 6 DAYS OR SYNC TOKEN EXPIRES
         payload['syncToken'] = sync_token
@@ -157,7 +163,8 @@ def _sync_job_id_application_ashby(url: str, payload: Dict):
             
             if response["moreDataAvailable"] == False:  # If there is more loop again
                 break
-        
+        # TODO: Update global sync token and last updated
+        SyncToken.set_sync_token(sync_token, next_cursor)
         return data
     except Exception as e:
         logger.error(f"_send_request_to_ashby: {e}")
