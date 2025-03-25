@@ -41,7 +41,7 @@ from jsonschema import validate, ValidationError
 
 from .resume_analysis import get_resume_analysis_agent
 from .data import AshbyClient, ApplicationProcessor
-from .constants import JOB_IDS, ASHBY_WEBHOOK_SECRET
+from .constants import JOB_IDS, ASHBY_WEBHOOK_SECRET, TECH_JOBS
 
 from .resume_analysis_utils.states.main_states import InputState
 import logging
@@ -114,7 +114,11 @@ def resume_analysis():
         applicants = application_processor.get_applications(job_id, job_name)
 
         # send application to resume analysis agent
-        agent = get_resume_analysis_agent()
+        if job_name in TECH_JOBS:
+            agent = get_resume_analysis_agent(tech=True)
+        else:
+            agent = get_resume_analysis_agent(tech=False)
+
         result = agent.invoke(InputState(
             job_data=job_data,
             applicants=applicants

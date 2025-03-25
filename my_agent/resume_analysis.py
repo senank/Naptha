@@ -24,7 +24,6 @@ Usage:
 """
 
 from langgraph.graph import START, END, StateGraph
-from langgraph.constants import Send
 
 from my_agent.resume_analysis_utils.states.main_states import AgentState, InputState,\
     OutputState
@@ -42,7 +41,7 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
-def get_resume_analysis_agent():
+def get_resume_analysis_agent(tech: bool):
     """
     Constructs and compiles the daily summary workflow for the LangGraph agent.
 
@@ -72,7 +71,11 @@ def get_resume_analysis_agent():
     # Add nodes
     logger.debug("Adding nodes and edges to the workflow")
     workflow.add_node("preprocessor", preprocessor)
-    workflow.add_node("create_analysis_subgraph", create_analysis_subgraph())
+
+    if tech:
+        workflow.add_node("create_analysis_subgraph", create_tech_analysis_subgraph())
+    else:
+        workflow.add_node("create_analysis_subgraph", create_non_tech_analysis_subgraph())
     workflow.add_node("output_node", output_node)
 
     # Add edges
@@ -86,25 +89,38 @@ def get_resume_analysis_agent():
     logger.info("Workflow construction complete")
     return workflow.compile()
 
-def create_analysis_subgraph():
+def create_tech_analysis_subgraph():
     logger.info("Constructing subgraph for classification")
     workflow = StateGraph(AnalysisState, output=AgentState)
-    workflow.add_node("step_1", validate_github)
-    workflow.add_node("step_2", assess_candidate)
+    workflow.add_node("github_validation_node", validate_github)
+    workflow.add_node("candidate_assessor_node", assess_candidate)
     workflow.add_node("subgraph_output_node", subgraph_output_node)
     
     # workflow.add_edge(START, "classify_article")
-    workflow.add_conditional_edges("step_1", 
+    workflow.add_conditional_edges("github_validation_node", 
                                     route_analysis, 
                                    {
-                                        "passed": "step_2",
+                                        "passed": "candidate_assessor_node",
                                         "failed": "subgraph_output_node"
                                    }
                                 )
-    workflow.add_edge("step_2", "subgraph_output_node")
+    workflow.add_edge("candidate_assessor_node", "subgraph_output_node")
 
-    workflow.set_entry_point("step_1")
+    workflow.set_entry_point("github_validation_node")
     workflow.set_finish_point("subgraph_output_node")
     return workflow.compile()
 
-graph = get_resume_analysis_agent()
+def create_non_tech_analysis_subgraph():
+    logger.info("Constructing subgraph for classification")
+    workflow = StateGraph(AnalysisState, output=AgentState)
+    workflow.add_node("candidate_assessor_node", assess_candidate)
+    workflow.add_node("subgraph_output_node", subgraph_output_node)
+
+    workflow.add_edge("candidate_assessor_node", "subgraph_output_node")
+
+    workflow.set_entry_point("candidate_assessor_node")
+    workflow.set_finish_point("subgraph_output_node")
+    return workflow.compile()
+
+non_tech_graph = get_resume_analysis_agent(tech=False)
+tech_graph = get_resume_analysis_agent(tech=True)
