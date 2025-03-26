@@ -14,7 +14,8 @@ The constants are categorized into the following sections:
 import os
 
 # JSON Keys
-JOB_IDS = ["82646b74-6c72-41a2-85a2-c8988a71fd53"]
+JOB_IDS = ["82646b74-6c72-41a2-85a2-c8988a71fd53", 
+           "0545fc1b-819c-44a1-a618-28dfb2b7ad5a"]  # Add more jobs here
 ASHBY_CUSTOM_FIELD = "3fbc8a21-18a1-4a61-b435-e76b80ff3eea"
 
 # Ashby API

@@ -82,7 +82,9 @@ def _get_relevant_application_data(applications: List[Dict]) -> List[Dict]:
     """
     processed_applications = []
     for application in applications:
-        if application['status'] != "Active" or application["currentInterviewStage"]["type"] != "PreInterviewScreen":  #? what is needed to not consider application
+        # if application['status'] == "Active" or application["currentInterviewStage"]["type"] != "PreInterviewScreen":  #? what is needed to not consider application
+        #     continue
+        if application['status'] == "Archived":
             continue
         cand_id = application['candidate']['id']
         applicant = _get_applicant_info(cand_id)
@@ -137,8 +139,9 @@ def _fetch_batch_job_applications(job_posting_id: str):
     """
     url = ASHBY_API_URL + "/application.list"
     json = {
-        "limit": 5,
-        "jobId": job_posting_id
+        "limit": 100,
+        "jobId": job_posting_id,
+        "status": "Active"
     }
     applications = _send_request_to_ashby(url, json)
 
