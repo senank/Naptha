@@ -93,8 +93,10 @@ def resume_analysis():
         return jsonify({"error": "No data prorecievedvided in response"}), 400
 
     _validate_resume_analysis_schema(data)
-    if not _validate_signature(request):
-        return jsonify({"error": "Invalid signature from webhook"}), 400
+
+    # TODO Validate secret -> webhook authentication
+    # if not _validate_signature(request):
+    #     return jsonify({"error": "Invalid signature from webhook"}), 400
 
     # Checks event type is application created
     if data['action'] != "applicationSubmit":
@@ -157,7 +159,7 @@ def _get_json_schema_resume_analysis():
 
         },
         "required": ["action", "data"],
-        "additionalProperties": False
+        "additionalProperties": True
     }
 
 

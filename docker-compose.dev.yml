@@ -14,3 +14,4 @@ services:
       - LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
       - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
       - ASHBY_API_KEY=${ASHBY_API_KEY}
+      - ASHBY_WEBHOOK_SECRET=${ASHBY_WEBHOOK_SECRET}

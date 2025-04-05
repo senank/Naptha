@@ -13,9 +13,8 @@ The constants are categorized into the following sections:
 """
 import os
 
-JOB_IDS = ["82646b74-6c72-41a2-85a2-c8988a71fd53"]
-TECH_JOBS = ["Software Engineer (Intern)"]
-NON_TECH_JOBS = []
+JOB_IDS = ["82646b74-6c72-41a2-85a2-c8988a71fd53"]  # Add all job IDs here
+TECH_JOBS = ["Software Engineer (Intern)"]  # Add tech job names here, all other jobs are non-tech
 
 # Ashby API
 ASHBY_API_KEY = os.getenv("ASHBY_API_KEY", "")

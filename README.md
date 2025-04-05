@@ -19,7 +19,9 @@ ASHBY_API_KEY=
 
 
 For next steps:
-- Setting up a CICD workflow/functions that check if field exists, if not create else track customField ID for Applications in Ashby
+- Setting up a CICD workflow/functions that 
+  - check if field exists, if not create else track customField ID for Applications in Ashby
+  - sets up application on server on new push
 - Optimize agent
   - Prompt engineering/refinement of process
   - Quality checks
